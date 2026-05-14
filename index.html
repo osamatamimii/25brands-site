@@ -658,7 +658,13 @@ footer { padding:3.5rem 5.5vw 2rem; border-top:1px solid var(--vdim); }
     </div>
     <a class="p-seeall" href="https://wa.me/972599609363?text=أريد الاطلاع على جميع المنتجات" target="_blank" sr="up" sd="1">عرض الكل ↗</a>
   </div>
-  <div class="pgrid" id="pgrid"><div class="card skel"></div><div class="card skel"></div><div class="card skel"></div><div class="card skel"></div></section>
+  <div class="pgrid" id="pgrid">
+  <!-- products loaded from Supabase -->
+  <div class="card" style="min-height:420px;background:#111;animation:skelPulse 1.5s ease-in-out infinite"></div>
+  <div class="card" style="min-height:420px;background:#111;animation:skelPulse 1.5s ease-in-out infinite;animation-delay:.2s"></div>
+  <div class="card" style="min-height:420px;background:#111;animation:skelPulse 1.5s ease-in-out infinite;animation-delay:.4s"></div>
+  <div class="card" style="min-height:420px;background:#111;animation:skelPulse 1.5s ease-in-out infinite;animation-delay:.6s"></div>
+</div></section>
 
 <!-- CTA -->
 <div class="cta-block">
@@ -723,99 +729,99 @@ footer { padding:3.5rem 5.5vw 2rem; border-top:1px solid var(--vdim); }
 </div>
 
 <script>
-/* ── Dynamic products from Supabase ── */
-const SUPABASE_URL = 'https://mbenszegcjmwgmbjylbf.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iZW5zemVnY2ptd2dtYmp5bGJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Nzk3Nzg2OSwiZXhwIjoyMDkzNTUzODY5fQ.LmCOC7T9iC2SuKzRH9aVeUz0eml8RM95chPGMQgvuFo';
-const STORE_SLUG = '25brands';
-let PRODUCTS = []; // will be filled from Supabase
+/* ═══ DYNAMIC PRODUCTS FROM SUPABASE ═══ */
+const SUPABASE_URL='https://mbenszegcjmwgmbjylbf.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iZW5zemVnY2ptd2dtYmp5bGJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Nzk3Nzg2OSwiZXhwIjoyMDkzNTUzODY5fQ.LmCOC7T9iC2SuKzRH9aVeUz0eml8RM95chPGMQgvuFo';
+const STORE_SLUG='25brands';
+let PRODUCTS=[];
 
-/* Skeleton CSS */
-const skelStyle = document.createElement('style');
-skelStyle.textContent = `
-.card.skel { animation: skelPulse 1.5s ease-in-out infinite; background:#1a1a1a !important; min-height:420px; }
-.card.skel figure, .card.skel .card-foot { visibility: hidden; }
-@keyframes skelPulse { 0%,100%{opacity:.4} 50%{opacity:.9} }
-.no-prods { grid-column:1/-1; text-align:center; padding:4rem; color:rgba(240,237,232,.3); font-family:'TS'; font-size:13px; letter-spacing:3px; }
-`;
-document.head.appendChild(skelStyle);
+/* Add skeleton animation */
+(function(){
+  const s=document.createElement('style');
+  s.textContent='@keyframes skelPulse{0%,100%{opacity:.3}50%{opacity:.7}}.no-prods{grid-column:1/-1;padding:4rem;text-align:center;color:rgba(240,237,232,.3);font-family:TS,sans-serif;font-size:13px;letter-spacing:3px}';
+  document.head.appendChild(s);
+})();
 
-/* Build card HTML identical to original structure */
-function buildCard(p, i) {
-  const img = p.image_url || '';
-  const name = p.name_ar || p.name_en || '';
-  const cat = (p.category || 'ITEM').toUpperCase();
-  const desc = p.desc_ar || p.desc_en || '';
-  const price = p.price ? p.price + ' ' + (p.currency === 'SAR' ? '﷼' : '₪') : '';
-  
-  return `<article class="card" data-i="${i}" onclick="openM(${i})">
+/* Rebuild openM to work with Supabase product format */
+function openM(pi){
+  const p=PRODUCTS[pi];
+  if(!p)return;
+  const name=p.name_ar||p.name_en||'';
+  const desc=p.desc_ar||p.desc_en||'';
+  const price=p.price?(p.price+' '+(p.currency==='SAR'?'﷼':'₪')):'';
+  document.getElementById('mc').textContent=(p.category||'ITEM').toUpperCase();
+  document.getElementById('mn').textContent=name;
+  document.getElementById('md').textContent=desc;
+  const mi=document.getElementById('mi');
+  mi.src=p.image_url||'';
+  mi.style.display=p.image_url?'block':'none';
+  const mv=document.getElementById('mv');
+  mv.innerHTML=price?`<span style="font-size:1.3rem;font-family:'TH',serif;font-weight:700;color:#c8a96e">${price}</span>`:'';
+  document.getElementById('mwa').onclick=()=>
+    window.open('https://wa.me/'+(p._storeWa||'972599609363')+'?text='+encodeURIComponent('السلام عليكم، أريد الاستفسار عن '+name),'_blank');
+  document.querySelector('.modal-wrap').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+/* Build product card matching original HTML structure exactly */
+function buildCard(p,i){
+  const name=p.name_ar||p.name_en||'';
+  const cat=(p.category||'ITEM').toUpperCase();
+  const price=p.price?(p.price+' '+(p.currency==='SAR'?'﷼':'₪')):'';
+  const img=p.image_url;
+  return `<article class="card" data-i="${i}">
   <figure>
-    ${img 
-      ? `<img id="ci${i}" src="${img}" alt="${name}" loading="lazy">`
-      : `<div id="ci${i}" style="width:100%;height:380px;background:#1c1c1c;display:flex;align-items:center;justify-content:center;font-size:5rem">👗</div>`
+    ${img
+      ?`<img id="ci${i}" src="${img}" alt="${name}" loading="lazy">`
+      :`<div id="ci${i}" style="width:100%;height:380px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;color:rgba(240,237,232,.2);font-size:3rem">◻</div>`
     }
     <div class="card-over">
-      <div class="clabels"><span class="cl on" data-p="${i}" data-v="0">${p.category || 'ONE SIZE'}</span></div>
-      <button class="c-btn" onclick="event.stopPropagation();openM(${i})">عرض التفاصيل</button>
+      <div class="clabels"><span class="cl on" data-p="${i}" data-v="0">${cat}</span></div>
+      <button class="c-btn" onclick="openM(${i})">عرض التفاصيل</button>
     </div>
   </figure>
   <div class="card-foot">
     <span class="ccat">${cat}</span>
     <h3>${name}</h3>
-    ${price ? `<span style="color:#c8a96e;font-family:'TS';font-size:13px;font-weight:500;letter-spacing:1px;display:block;margin-top:4px">${price}</span>` : ''}
+    ${price?`<span style="font-size:13px;font-family:TS,sans-serif;font-weight:500;color:#c8a96e;letter-spacing:1px;margin-top:4px;display:block">${price}</span>`:''}
   </div>
 </article>`;
 }
 
-/* openM patched for Supabase products */
-function openM(pi) {
-  const p = PRODUCTS[pi];
-  if (!p) return;
-  const name = p.name_ar || p.name_en || '';
-  const desc = p.desc_ar || p.desc_en || '';
-  const price = p.price ? p.price + ' ' + (p.currency === 'SAR' ? '﷼' : '₪') : '';
-  
-  document.getElementById('mc').textContent = (p.category || 'ITEM').toUpperCase();
-  document.getElementById('mn').textContent = name;
-  document.getElementById('md').textContent = desc;
-  document.getElementById('mi').src = p.image_url || '';
-  document.getElementById('mv').innerHTML = price ? `<span style="color:#c8a96e;font-size:1.2rem;font-family:'TH';font-weight:700">${price}</span>` : '';
-  document.getElementById('mwa').onclick = () =>
-    window.open('https://wa.me/' + (p.store_wa || '972599609363') + '?text=' + encodeURIComponent('السلام عليكم، أريد الاستفسار عن ' + name), '_blank');
-  document.querySelector('.modal-wrap')?.classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
+/* Load products from Supabase */
+async function loadProducts(){
+  const grid=document.getElementById('pgrid');
+  try{
+    const sr=await fetch(SUPABASE_URL+'/rest/v1/stores?slug=eq.'+STORE_SLUG+'&select=id,owner_phone',
+      {headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
+    const stores=await sr.json();
+    if(!stores.length){grid.innerHTML='<p class="no-prods">المتجر غير متاح</p>';return;}
+    const store=stores[0];
+    const wa=(store.owner_phone||'972599609363').replace(/\D/g,'');
 
-/* Load products */
-async function loadProducts() {
-  const grid = document.getElementById('pgrid');
-  try {
-    const sr = await fetch(
-      SUPABASE_URL + '/rest/v1/stores?slug=eq.' + STORE_SLUG + '&select=id,owner_phone',
-      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
-    );
-    const stores = await sr.json();
-    if (!stores.length) { grid.innerHTML = '<p class="no-prods">المتجر غير متاح</p>'; return; }
-    const store = stores[0];
+    const pr=await fetch(
+      SUPABASE_URL+'/rest/v1/products?store_id=eq.'+store.id+'&status=eq.visible&order=created_at.desc&select=*',
+      {headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
+    PRODUCTS=await pr.json();
     
-    const pr = await fetch(
-      SUPABASE_URL + '/rest/v1/products?store_id=eq.' + store.id +
-      '&status=eq.visible&order=created_at.desc&select=*',
-      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
-    );
-    PRODUCTS = await pr.json();
-    if (!PRODUCTS.length) { grid.innerHTML = '<p class="no-prods">لا توجد منتجات متاحة</p>'; return; }
+    if(!PRODUCTS.length){grid.innerHTML='<p class="no-prods">لا توجد منتجات متاحة</p>';return;}
+    PRODUCTS.forEach(p=>p._storeWa=wa);
     
-    // Add wa to each product for modal
-    PRODUCTS.forEach(p => p.store_wa = store.owner_phone?.replace(/\D/g,'') || '972599609363');
+    grid.innerHTML=PRODUCTS.map((p,i)=>buildCard(p,i)).join('');
     
-    grid.innerHTML = PRODUCTS.map((p, i) => buildCard(p, i)).join('');
+    // Rebind card clicks
+    grid.querySelectorAll('.card').forEach((card,i)=>{
+      card.style.cursor='pointer';
+      card.addEventListener('click',()=>openM(i));
+    });
     
-    // Re-run scroll reveal on new cards
-    document.querySelectorAll('#pgrid .card').forEach(el => srObs?.observe(el));
-    
-  } catch(e) {
-    console.error('loadProducts error:', e);
-    grid.innerHTML = '<p class="no-prods">تعذّر تحميل المنتجات</p>';
+    // Rebind scroll reveal
+    if(typeof srObs!=='undefined')
+      grid.querySelectorAll('[sr]').forEach(el=>srObs.observe(el));
+      
+  }catch(e){
+    console.error('loadProducts:',e);
+    grid.innerHTML='<p class="no-prods">تعذّر تحميل المنتجات</p>';
   }
 }
 
